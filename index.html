@@ -238,6 +238,18 @@
     cite { color: var(--muted); font-size: 14px; font-style: normal; }
     .placeholder-label { display: inline-block; margin-top: 28px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 4px; color: var(--faint); font-size: 11px; letter-spacing: .04em; }
 
+    .workflow { overflow: hidden; padding: clamp(18px, 3vw, 30px); border: 1px solid var(--line); border-radius: 18px; background: linear-gradient(145deg, rgba(27, 33, 50, .88), rgba(14, 18, 29, .88)); box-shadow: var(--shadow); }
+    .workflow-svg { display: block; width: 100%; max-width: 100%; height: auto; }
+    .workflow-svg--mobile { display: none; }
+    .workflow-path { fill: none; stroke: var(--accent-deep); stroke-linecap: round; stroke-linejoin: round; stroke-width: 3; }
+    .workflow-node { fill: var(--surface-raised); stroke: var(--line-strong); stroke-width: 1.5; }
+    .workflow-node--approval { fill: var(--accent-strong); stroke: var(--accent-strong); }
+    .workflow-label, .workflow-step { font-family: var(--font); text-anchor: middle; }
+    .workflow-label { fill: var(--text); font-size: 19px; font-weight: 750; letter-spacing: -.04em; }
+    .workflow-label--approval { fill: #11142a; }
+    .workflow-step { fill: var(--faint); font-size: 11px; font-weight: 800; letter-spacing: .08em; }
+    .workflow-step--approval { fill: #353b66; }
+
     .faq { max-width: 800px; }
     .faq summary { padding-right: 4px; }
     .faq .details-body { padding-left: 4px; }
@@ -262,6 +274,8 @@
       .comparison-head div, .comparison-row div { padding: 15px 13px; font-size: 14px; }
       .comparison-row div { font-size: 13px; line-height: 1.55; }
       .details-body { padding-left: 39px; }
+      .workflow-svg--desktop { display: none; }
+      .workflow-svg--mobile { display: block; }
       .final { padding: 80px 0; }
       br.mobile-break { display: block; }
       .hero-note { flex-basis: 100%; }
@@ -374,6 +388,42 @@
               <p>AI에게 '무엇을 하라'만 가르치는 사람은 많다. 실력 차이는 '언제 하지 말라'를 가르치는 데서 갈린다.</p>
               <cite>— 4장, 실전 해부에서</cite>
             </blockquote>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--border" aria-labelledby="day-title">
+        <div class="container">
+          <p class="eyebrow">A working loop</p>
+          <h2 id="day-title">AI가 대신 도는 하루</h2>
+          <p class="section-intro">정해 둔 기준 안에서 확인하고, 멈추고, 다음 일을 준비합니다. 발행 전에는 반드시 승인을 기다립니다.</p>
+          <div class="workflow">
+            <svg class="workflow-svg workflow-svg--desktop" viewBox="0 0 1040 500" role="img" aria-labelledby="workflow-desktop-title workflow-desktop-desc" xmlns="http://www.w3.org/2000/svg">
+              <title id="workflow-desktop-title">AI 자동화 하루 흐름</title>
+              <desc id="workflow-desktop-desc">새벽 자동 실행부터 성과 조회, 기준 미달 소재 자동 정지, 새 소재 기획, 텔레그램 승인 대기, 발행, 로그 기록까지 이어지는 흐름입니다.</desc>
+              <defs><marker id="workflow-arrow-desktop" markerWidth="10" markerHeight="10" refX="7" refY="3.5" orient="auto"><path d="M0,0 L0,7 L7,3.5 z" fill="var(--accent)" /></marker></defs>
+              <path class="workflow-path" d="M250 125H280" marker-end="url(#workflow-arrow-desktop)" /><path class="workflow-path" d="M500 125H530" marker-end="url(#workflow-arrow-desktop)" /><path class="workflow-path" d="M750 125H780" marker-end="url(#workflow-arrow-desktop)" /><path class="workflow-path" d="M895 180V300" marker-end="url(#workflow-arrow-desktop)" /><path class="workflow-path" d="M780 355H760" marker-end="url(#workflow-arrow-desktop)" /><path class="workflow-path" d="M530 355H510" marker-end="url(#workflow-arrow-desktop)" />
+              <rect class="workflow-node" x="20" y="70" width="230" height="110" rx="14" /><text class="workflow-step" x="135" y="101">01</text><text class="workflow-label" x="135" y="140">새벽 자동 실행</text>
+              <rect class="workflow-node" x="280" y="70" width="220" height="110" rx="14" /><text class="workflow-step" x="390" y="101">02</text><text class="workflow-label" x="390" y="140">성과 조회</text>
+              <rect class="workflow-node" x="530" y="70" width="220" height="110" rx="14" /><text class="workflow-step" x="640" y="97">03</text><text class="workflow-label" x="640" y="130"><tspan x="640">판단: 기준 미달 소재</tspan><tspan x="640" dy="25">자동 정지</tspan></text>
+              <rect class="workflow-node" x="780" y="70" width="230" height="110" rx="14" /><text class="workflow-step" x="895" y="101">04</text><text class="workflow-label" x="895" y="140">새 소재 기획</text>
+              <rect class="workflow-node workflow-node--approval" x="780" y="300" width="230" height="110" rx="14" /><text class="workflow-step workflow-step--approval" x="895" y="331">05</text><text class="workflow-label workflow-label--approval" x="895" y="370">텔레그램 승인 대기</text>
+              <rect class="workflow-node" x="530" y="300" width="230" height="110" rx="14" /><text class="workflow-step" x="645" y="331">06</text><text class="workflow-label" x="645" y="370">발행</text>
+              <rect class="workflow-node" x="280" y="300" width="230" height="110" rx="14" /><text class="workflow-step" x="395" y="331">07</text><text class="workflow-label" x="395" y="370">로그</text>
+            </svg>
+            <svg class="workflow-svg workflow-svg--mobile" viewBox="0 0 343 920" role="img" aria-labelledby="workflow-mobile-title workflow-mobile-desc" xmlns="http://www.w3.org/2000/svg">
+              <title id="workflow-mobile-title">AI 자동화 하루 흐름</title>
+              <desc id="workflow-mobile-desc">새벽 자동 실행부터 성과 조회, 기준 미달 소재 자동 정지, 새 소재 기획, 텔레그램 승인 대기, 발행, 로그 기록까지 이어지는 흐름입니다.</desc>
+              <defs><marker id="workflow-arrow-mobile" markerWidth="10" markerHeight="10" refX="7" refY="3.5" orient="auto"><path d="M0,0 L0,7 L7,3.5 z" fill="var(--accent)" /></marker></defs>
+              <path class="workflow-path" d="M171.5 108V145" marker-end="url(#workflow-arrow-mobile)" /><path class="workflow-path" d="M171.5 225V262" marker-end="url(#workflow-arrow-mobile)" /><path class="workflow-path" d="M171.5 366V403" marker-end="url(#workflow-arrow-mobile)" /><path class="workflow-path" d="M171.5 483V520" marker-end="url(#workflow-arrow-mobile)" /><path class="workflow-path" d="M171.5 600V637" marker-end="url(#workflow-arrow-mobile)" /><path class="workflow-path" d="M171.5 717V754" marker-end="url(#workflow-arrow-mobile)" />
+              <rect class="workflow-node" x="20" y="28" width="303" height="80" rx="14" /><text class="workflow-step" x="171.5" y="55">01</text><text class="workflow-label" x="171.5" y="84">새벽 자동 실행</text>
+              <rect class="workflow-node" x="20" y="145" width="303" height="80" rx="14" /><text class="workflow-step" x="171.5" y="172">02</text><text class="workflow-label" x="171.5" y="201">성과 조회</text>
+              <rect class="workflow-node" x="20" y="262" width="303" height="104" rx="14" /><text class="workflow-step" x="171.5" y="289">03</text><text class="workflow-label" x="171.5" y="320"><tspan x="171.5">판단: 기준 미달 소재</tspan><tspan x="171.5" dy="24">자동 정지</tspan></text>
+              <rect class="workflow-node" x="20" y="403" width="303" height="80" rx="14" /><text class="workflow-step" x="171.5" y="430">04</text><text class="workflow-label" x="171.5" y="459">새 소재 기획</text>
+              <rect class="workflow-node workflow-node--approval" x="20" y="520" width="303" height="80" rx="14" /><text class="workflow-step workflow-step--approval" x="171.5" y="547">05</text><text class="workflow-label workflow-label--approval" x="171.5" y="576">텔레그램 승인 대기</text>
+              <rect class="workflow-node" x="20" y="637" width="303" height="80" rx="14" /><text class="workflow-step" x="171.5" y="664">06</text><text class="workflow-label" x="171.5" y="693">발행</text>
+              <rect class="workflow-node" x="20" y="754" width="303" height="80" rx="14" /><text class="workflow-step" x="171.5" y="781">07</text><text class="workflow-label" x="171.5" y="810">로그</text>
+            </svg>
           </div>
         </div>
       </section>
