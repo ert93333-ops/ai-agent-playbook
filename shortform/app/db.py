@@ -181,6 +181,14 @@ def set_autonomy_level(track_id: str, level: int) -> None:
             (track_id, level, time.time()))
 
 
+def blacklist_channel(channel_url: str, reason: str) -> None:
+    if not channel_url:
+        return
+    with conn() as c:
+        c.execute("INSERT OR IGNORE INTO blacklist (channel_url, reason, added_at)"
+                  " VALUES (?,?,?)", (channel_url, reason, time.time()))
+
+
 def uploads_today(platform: str) -> int:
     day_start = time.time() - (time.time() % 86400)
     with conn() as c:

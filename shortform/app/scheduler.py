@@ -10,7 +10,8 @@ from apscheduler.triggers.cron import CronTrigger
 
 from . import policy
 from .config import enabled_tracks
-from .stages import m1_discover, m2_acquire, m3_analyze, m4_edit, m5_render, m6_publish
+from .stages import (m1_discover, m2_acquire, m3_analyze, m4_edit, m5_render,
+                     m6_publish, m8_feedback)
 
 
 def pipeline_tick() -> None:
@@ -27,6 +28,10 @@ def main() -> None:
     sched.add_job(m1_discover.run, "interval", hours=2, id="m1")
     sched.add_job(pipeline_tick, "interval", minutes=10, id="pipeline",
                   max_instances=1, coalesce=True)
+    sched.add_job(m8_feedback.run, CronTrigger(hour=3, minute=0), id="m8")
+    sched.add_job(m8_feedback.weekly_tone_review,
+                  CronTrigger(day_of_week="sun", hour=4, minute=0),
+                  id="tone-review")
     for track in enabled_tracks():
         for slot in track.publish_slots:
             hh, mm = slot.split(":")
