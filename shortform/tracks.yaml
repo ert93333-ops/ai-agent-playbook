@@ -1,0 +1,46 @@
+# 트랙 = 대상 시장. kr 단독 런칭, en/zh-hant는 Phase 5에서 활성화.
+tracks:
+  kr:
+    enabled: true
+    target_lang: ko
+    source_langs: [en, ja]
+    trend_regions: [US, GB, JP]
+    persona_file: persona.kr.yaml
+    tts_voice: ko-KR-InJoonNeural
+    tts_rate: "+15%"
+    publish_slots: ["07:30", "12:30", "19:30"]   # KST
+    timezone: Asia/Seoul
+    categories: [global_meme, tech_science, sports, incident]
+    daily_upload_limit: 3
+    subreddits: [all, videos, interestingasfuck, nextfuckinglevel, gadgets]
+    # 멀티 채널 분산 시: youtube_token_file: token.youtube.kr2.json 처럼 지정
+
+  product:                  # 상품 소개 전용 채널 (해설 채널과 완전 분리)
+    enabled: true
+    sourcing: catalog        # products.yaml 카탈로그가 소재 (트렌드 스캔 안 함)
+    target_lang: ko
+    source_langs: [ko]
+    trend_regions: []
+    persona_file: persona.product.yaml
+    tts_voice: ko-KR-SunHiNeural
+    tts_rate: "+10%"
+    publish_slots: ["11:00", "20:00"]   # 쇼핑 골든타임
+    timezone: Asia/Seoul
+    categories: [product]
+    daily_upload_limit: 2
+    # 별도 유튜브 계정 필수 — 이 채널 전용 OAuth 파일 지정:
+    youtube_token_file: token.youtube.product.json
+    youtube_client_secret_file: client_secret.json   # 같은 GCP 프로젝트 사용 가능
+
+  en:
+    enabled: false          # Phase 5. kr에서 검증된 템플릿 상속 후 활성화
+    target_lang: en
+    source_langs: [ko, ja]
+    trend_regions: [KR, JP]
+    persona_file: persona.en.yaml
+    tts_voice: en-US-GuyNeural
+    tts_rate: "+10%"
+    publish_slots: ["08:00", "13:00", "20:00"]   # ET
+    timezone: America/New_York
+    categories: [global_meme, tech_science, sports, incident]
+    daily_upload_limit: 3

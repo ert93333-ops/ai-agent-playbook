@@ -1,0 +1,39 @@
+# 상품 카탈로그 — products.yaml로 복사해 사용. product 트랙의 소재 목록.
+# footage: 직접 촬영한 상품 영상/언박싱 mp4 경로 (license=own이므로 권리 문제 없음)
+# partners_link: 본인 쿠팡 상품에 대해 발급한 쿠팡파트너스 링크
+products:
+  - id: wireless-earbuds-01
+    name: "OO 무선 이어폰"
+    footage: ./ingest/products/earbuds.mp4
+    license: own            # own(본인 촬영) | licensed(공급사 제공 영상)
+    # licensed인 경우 제공 근거 기록 필수:
+    # license: licensed
+    # license_note: "2026-07-15 OO전자 담당자 이메일로 홍보 소스 사용 허가"
+
+  # 1688 사입 상품 예시 — footage가 아직 없으면 아웃리치가 소스 요청 초안을
+  # 자동 생성한다 (out/outreach/*.1688.txt → 왕왕 채팅에 붙여넣기).
+  # 소스 받으면 footage 경로 채우고 license: licensed + license_note 기록.
+  - id: mini-humidifier-01
+    name: "미니 무선 가습기"
+    footage: ./ingest/products/humidifier.mp4   # 아직 없음 → 아웃리치 대상
+    supplier_channel: "1688"
+    supplier_url: https://detail.1688.com/offer/...
+    license: licensed
+    license_note: ""        # 공급사 허가 회신 받으면 기록
+    coupang_url: https://www.coupang.com/vp/products/...
+    partners_link: https://link.coupang.com/a/...
+    price: "15,900원"
+    selling_points:
+      - "무선 — 차량·사무실 어디서나"
+      - "8시간 연속 분무"
+    target_audience: "건조한 사무실에서 일하는 직장인"
+    avoid: "치료·건강 효능 주장 금지"
+    coupang_url: https://www.coupang.com/vp/products/...
+    partners_link: https://link.coupang.com/a/...
+    price: "29,900원"
+    selling_points:
+      - "노이즈캔슬링 + 34시간 재생"
+      - "IPX5 방수 — 운동용으로 강함"
+      - "동급 최저가 대비 리뷰 4.8"
+    target_audience: "출퇴근·운동용 가성비 이어폰 찾는 20~30대"
+    avoid: "타사 브랜드 비교·비방 금지"

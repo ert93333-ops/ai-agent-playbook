@@ -1,0 +1,217 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>shortform</title>
+<style>
+  body{font-family:Pretendard,-apple-system,'Malgun Gothic',sans-serif;background:#111;color:#eee;margin:0;padding:24px}
+  h1{font-size:20px;margin:0 0 12px}
+  .card{background:#1b1b1f;border:1px solid #2a2a30;border-radius:12px;padding:16px;margin-bottom:16px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  button{padding:8px 16px;border-radius:8px;border:0;cursor:pointer;font-size:14px}
+  .primary{background:#4263eb;color:#fff}.ok{background:#2e7d46;color:#fff}.no{background:#8d3030;color:#fff}
+  button:disabled{opacity:.4;cursor:default}
+  input[type=text]{padding:8px;border-radius:8px;border:1px solid #444;background:#111;color:#eee;min-width:220px}
+  video{max-height:420px;border-radius:8px;width:100%}
+  #log{background:#0c0c0e;border-radius:8px;padding:10px;font:12px/1.6 monospace;max-height:180px;overflow-y:auto;white-space:pre-wrap;color:#9ad}
+  .badge{padding:3px 10px;border-radius:999px;font-size:12px}
+  .on{background:#173d26;color:#6bff9e}.off{background:#4a1d1d;color:#ff8a8a}
+  #autonomy{color:#9ad;font-size:13px;margin-top:8px}
+  /* 단계별 집계 바 */
+  #summary{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}
+  .scount{background:#222;border-radius:8px;padding:6px 12px;font-size:13px;min-width:70px;text-align:center}
+  .scount b{display:block;font-size:20px;color:#fff}
+  /* 카드 그리드 */
+  #jobs{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+  .job{background:#17171b;border:1px solid #2a2a30;border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+  .thumb{width:100%;aspect-ratio:9/16;max-height:300px;object-fit:cover;background:#0c0c0e}
+  .thumb.ph{display:flex;align-items:center;justify-content:center;color:#555;font-size:13px}
+  .job .body{padding:12px}
+  .job .ttl{font-size:14px;font-weight:600;margin-bottom:6px;line-height:1.35}
+  .job .snip{font-size:12px;color:#999;margin-bottom:8px;max-height:34px;overflow:hidden}
+  .job .err{font-size:12px;color:#ff8a8a;margin-bottom:6px}
+  /* 진행 스텝퍼 */
+  .steps{display:flex;gap:3px;margin-bottom:8px}
+  .step{flex:1;height:6px;border-radius:3px;background:#333}
+  .step.done{background:#4263eb}.step.cur{background:#ffd24d}
+  .step.fail{background:#ff6b6b}
+  .stagelbl{font-size:11px;color:#8ab;margin-bottom:8px}
+  .meta{font-size:11px;color:#777;display:flex;justify-content:space-between;margin-top:4px}
+</style>
+
+<h1>🎬 shortform — 숏폼 자동 생성 스튜디오</h1>
+
+<div class="card">
+  <div class="row" id="setup"></div>
+</div>
+
+<div class="card">
+  <b>1. 영상 넣기</b>
+  <div class="row" style="margin-top:8px">
+    <input type="file" id="file" accept="video/mp4,video/*">
+    <input type="text" id="title" placeholder="영상 제목 (작업용)">
+    <button class="primary" onclick="ingest()">영상 추가</button>
+    <span style="color:#888">또는</span>
+    <button onclick="discover()">해외 트렌드에서 자동으로 찾기</button>
+  </div>
+</div>
+
+<div class="card">
+  <b>2. 만들기</b>
+  <div class="row" style="margin-top:8px">
+    <button class="primary" id="runbtn" onclick="run()">▶ 한 번 실행 (전사→대본→TTS→편집→렌더)</button>
+    <button class="ok" id="autobtn" onclick="toggleAuto()">🔁 자동 모드 시작</button>
+    <span id="runstate"></span>
+  </div>
+  <small style="color:#888">자동 모드: 끄기 전까지 트렌드 스캔(2시간) → 편집(10분) → 발행 슬롯 업로드 → 성과 수집(매일 03시)이 계속 돕니다.
+  업로드는 자동화 레벨을 따릅니다 — Level 0에서는 아래에서 승인한 영상만 발행 슬롯에 올라갑니다.</small>
+  <div id="log" style="margin-top:10px;display:none"></div>
+</div>
+
+<div class="card">
+  <b>3. 진행 상황 · 확인 · 승인</b>
+  <div id="autonomy"></div>
+  <div id="summary" style="margin-top:10px"></div>
+  <div id="jobs" style="margin-top:12px"></div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+async function loadSetup(){
+  const s = await (await fetch('/api/setup')).json();
+  const item = (ok, label, hint) =>
+    `<span class="badge ${ok?'on':'off'}">${ok?'✓':'✗'} ${label}</span>` + (ok?'':`<small style="color:#888">${hint}</small>`);
+  $('setup').innerHTML = [
+    item(s.anthropic_key, 'Claude API 키', '.env에 ANTHROPIC_API_KEY 입력 후 재시작'),
+    item(s.ffmpeg, 'ffmpeg', 'winget install ffmpeg 후 재시작'),
+    item(s.whisper, 'Whisper(전사)', 'pip install -e ".[media]"'),
+    item(s.youtube_key, 'YouTube 키(자동 소싱용·선택)', ''),
+    `<span class="badge ${s.llm_cost_month < s.llm_budget ? 'on':'off'}">💰 이번 달 LLM $${s.llm_cost_month} / $${s.llm_budget}</span>`,
+  ].join(' ');
+}
+
+async function ingest(){
+  const f = $('file').files[0];
+  if(!f){ alert('영상 파일을 선택하세요'); return; }
+  const fd = new FormData();
+  fd.append('file', f);
+  fd.append('title', $('title').value || f.name);
+  const r = await fetch('/api/ingest', {method:'POST', body:fd});
+  if(r.ok){ $('title').value=''; $('file').value=''; loadJobs(); alert('등록 완료! "파이프라인 실행"을 누르세요.'); }
+  else alert('등록 실패: ' + (await r.text()));
+}
+
+async function discover(){
+  const r = await fetch('/api/discover', {method:'POST'});
+  const t = await r.json();
+  alert(r.ok ? `신규 소재 ${t.created}건 등록` : (t.detail || '실패'));
+  loadJobs();
+}
+
+async function run(){
+  const r = await fetch('/api/run', {method:'POST'});
+  if(!r.ok){ alert((await r.json()).detail); return; }
+  pollLog();
+}
+
+async function toggleAuto(){
+  const st = await (await fetch('/api/auto/status')).json();
+  const url = st.auto ? '/api/auto/stop' : '/api/auto/start';
+  const r = await fetch(url, {method:'POST'});
+  if(!r.ok){ alert((await r.json()).detail); return; }
+  refreshAuto(); pollLog();
+}
+
+async function refreshAuto(){
+  const st = await (await fetch('/api/auto/status')).json();
+  const b = $('autobtn');
+  b.textContent = st.auto ? '⏹ 자동 모드 중지' : '🔁 자동 모드 시작';
+  b.className = st.auto ? 'no' : 'ok';
+  $('runbtn').style.display = st.auto ? 'none' : '';
+}
+
+async function pollLog(){
+  const d = await (await fetch('/api/run/log')).json();
+  $('log').style.display = 'block';
+  $('log').textContent = d.log.join('\n');
+  $('log').scrollTop = $('log').scrollHeight;
+  $('runbtn').disabled = d.running;
+  $('runstate').textContent = d.running ? '실행 중... (첫 실행은 모델 다운로드로 오래 걸립니다)' : '';
+  if(d.running) setTimeout(pollLog, 2000); else loadJobs();
+}
+
+const STAGES = ['발굴','확보','분석','편집','렌더','승인','완료'];
+const STAGE_KO = {DISCOVERED:'소재 발굴됨',RIGHTS_OK:'권리 확인',ACQUIRED:'원본 확보',
+  ANALYZED:'대본 생성됨',EDITED:'편집 완료',RENDERED:'렌더 완료 — 확인 대기',
+  APPROVED:'승인됨 — 업로드 대기',PUBLISHED_YT:'유튜브 게시됨',DONE:'완료',
+  FAILED:'실패',REJECTED:'반려됨',BLOCKED_RIGHTS:'권리 차단'};
+
+function stepper(j){
+  const fail = ['FAILED','REJECTED','BLOCKED_RIGHTS'].includes(j.state);
+  let h = '<div class="steps">';
+  for(let i=0;i<STAGES.length;i++){
+    let cls = 'step';
+    if(fail && i>j.stage_index) cls+=' fail';
+    else if(i<j.stage_index) cls+=' done';
+    else if(i===j.stage_index) cls+= fail?' fail':' cur';
+    h += `<div class="${cls}" title="${STAGES[i]}"></div>`;
+  }
+  return h+'</div>';
+}
+
+async function loadJobs(){
+  const auto = await (await fetch('/api/autonomy')).json();
+  $('autonomy').textContent = auto.map(a =>
+    `${a.track}: 자동화 Level ${a.level} (엔진-운영자 일치율 ${(a.agreement*100).toFixed(1)}% / 표본 ${a.samples})`).join('  |  ');
+  const jobs = await (await fetch('/api/jobs')).json();
+
+  // 단계별 집계
+  const counts = {};
+  for(const j of jobs) counts[j.state] = (counts[j.state]||0)+1;
+  const order = ['DISCOVERED','ACQUIRED','ANALYZED','EDITED','RENDERED','APPROVED','DONE','FAILED','REJECTED'];
+  $('summary').innerHTML = order.filter(s=>counts[s]).map(s=>
+    `<div class="scount"><b>${counts[s]}</b>${STAGE_KO[s]||s}</div>`).join('') ||
+    '<div class="scount" style="color:#888">아직 작업이 없습니다 — 위에서 영상을 넣거나 트렌드를 찾으세요</div>';
+
+  // 카드 그리드
+  const g = $('jobs'); g.innerHTML = '';
+  for(const j of jobs){
+    const risk = j.policy?.risk?.risk_score;
+    const thumb = j.has_thumb
+      ? `<img class="thumb" src="/api/thumb/${j.id}">`
+      : `<div class="thumb ph">${['FAILED','REJECTED','BLOCKED_RIGHTS'].includes(j.state)?'⚠ '+STAGE_KO[j.state]:'⏳ 처리 중...'}</div>`;
+    let actions = '';
+    if(j.state==='RENDERED'){
+      actions = `<video src="/api/preview/${j.id}" controls preload="none"></video>
+        <div class="row" style="margin-top:8px">
+          <button class="ok" onclick="decide(${j.id},true)">승인</button>
+          <button class="no" onclick="decide(${j.id},false)">반려</button>
+        </div>`;
+    }
+    const div = document.createElement('div');
+    div.className = 'job';
+    div.innerHTML = `${thumb}
+      <div class="body">
+        ${stepper(j)}
+        <div class="stagelbl">${STAGE_KO[j.state]||j.state}</div>
+        <div class="ttl">${j.title??j.source_title??'(제목 생성 전)'}</div>
+        ${j.snippet?`<div class="snip">${j.snippet}</div>`:''}
+        ${j.error?`<div class="err">${j.error}</div>`:''}
+        ${actions}
+        <div class="meta"><span>#${j.id} · ${j.category??''}</span>
+          <span>${risk!=null?'리스크 '+risk:''}</span></div>
+      </div>`;
+    g.appendChild(div);
+  }
+}
+
+async function decide(id, approve){
+  let reason = '';
+  if(!approve){ reason = prompt('반려 사유 (필수 — 자동화 학습 데이터로 사용됩니다)'); if(!reason) return; }
+  await fetch(`/api/decide/${id}`,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({approve, reason})});
+  loadJobs();
+}
+
+loadSetup(); loadJobs(); pollLog(); refreshAuto();
+setInterval(loadJobs, 20000); setInterval(refreshAuto, 20000);
+</script>
