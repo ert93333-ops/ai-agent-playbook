@@ -31,6 +31,13 @@ def render(job: dict) -> None:
         raise RuntimeError(f"ffmpeg failed: {proc.stderr[-1500:]}")
     tmp_mp4.rename(out_mp4)   # 원자적 완성 (PLAYBOOK §6-1 멱등성)
 
+    # 썸네일 프레임 1장 추출 (GUI 미리보기용)
+    thumb = OUT_DIR / f"{job['id']}.jpg"
+    subprocess.run(
+        ["ffmpeg", "-y", "-i", str(out_mp4), "-vf",
+         "thumbnail,scale=360:640", "-frames:v", "1", str(thumb)],
+        capture_output=True)
+
     meta = {
         "job_id": job["id"],
         "title": job["payload"]["title"] + " #Shorts",

@@ -166,20 +166,44 @@ def index() -> str:
     return INDEX.read_text(encoding="utf-8")
 
 
+STAGE_ORDER = ["DISCOVERED", "ACQUIRED", "ANALYZED", "EDITED", "RENDERED",
+               "APPROVED", "DONE"]
+
+
+def _stage_index(state: str) -> int:
+    if state == "RIGHTS_OK":
+        return 0
+    if state in ("PUBLISHED_YT", "PUBLISHED_IG"):
+        return STAGE_ORDER.index("APPROVED")
+    return STAGE_ORDER.index(state) if state in STAGE_ORDER else -1
+
+
 @app.get("/api/jobs")
 def jobs() -> list[dict]:
-    states = ["DISCOVERED", "RIGHTS_OK", "ACQUIRED", "ANALYZED", "EDITED",
-              "RENDERED", "APPROVED", "PUBLISHED_YT", "DONE",
-              "FAILED", "REJECTED", "BLOCKED_RIGHTS"]
+    states = STAGE_ORDER + ["RIGHTS_OK", "PUBLISHED_YT",
+                            "FAILED", "REJECTED", "BLOCKED_RIGHTS"]
     out = []
     for st in states:
         for j in db.jobs_in_state(st):
+            script = j["payload"].get("script", {}).get("script", [])
+            snippet = " · ".join(p["text"] for p in script[:2]) if script else ""
             out.append({k: j[k] for k in
                         ("id", "track_id", "state", "category", "source_title",
                          "priority", "error")}
                        | {"title": j["payload"].get("title"),
+                          "snippet": snippet,
+                          "stage_index": _stage_index(st),
+                          "has_thumb": (OUT_DIR / f"{j['id']}.jpg").exists(),
                           "policy": j["payload"].get("policy")})
     return out
+
+
+@app.get("/api/thumb/{job_id}")
+def thumb(job_id: int) -> FileResponse:
+    path = OUT_DIR / f"{job_id}.jpg"
+    if not path.exists():
+        raise HTTPException(404)
+    return FileResponse(path, media_type="image/jpeg")
 
 
 @app.get("/api/preview/{job_id}")
