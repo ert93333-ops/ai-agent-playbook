@@ -16,7 +16,9 @@ if not exist .venv (
 )
 call .venv\Scripts\activate.bat
 
-pip show fastapi >nul 2>nul
+rem 마지막으로 추가된 의존성(python-multipart) 기준으로 설치 여부 판단 —
+rem 코드 업데이트로 의존성이 늘어나도 자동으로 재설치되게 한다.
+pip show python-multipart >nul 2>nul
 if errorlevel 1 (
   echo [2/4] 의존성 설치 중... ^(최초 1회, 몇 분 걸립니다^)
   pip install -e ".[media,serve,dev]"
