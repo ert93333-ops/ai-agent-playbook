@@ -1,28 +1,113 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>shortform 대시보드</title>
+<title>shortform</title>
 <style>
-  body{font-family:Pretendard,-apple-system,'Malgun Gothic',sans-serif;background:#111;color:#eee;margin:24px}
-  h1{font-size:20px} table{border-collapse:collapse;width:100%;font-size:14px}
-  td,th{border-bottom:1px solid #333;padding:8px;text-align:left}
+  body{font-family:Pretendard,-apple-system,'Malgun Gothic',sans-serif;background:#111;color:#eee;margin:0;padding:24px}
+  h1{font-size:20px;margin:0 0 12px}
+  .card{background:#1b1b1f;border:1px solid #2a2a30;border-radius:12px;padding:16px;margin-bottom:16px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  table{border-collapse:collapse;width:100%;font-size:14px}
+  td,th{border-bottom:1px solid #333;padding:8px;text-align:left;vertical-align:top}
   .RENDERED{color:#ffd24d}.FAILED,.REJECTED,.BLOCKED_RIGHTS{color:#ff6b6b}
   .DONE,.APPROVED,.PUBLISHED_YT{color:#6bff9e}
-  button{margin-right:6px;padding:4px 10px;border-radius:6px;border:0;cursor:pointer}
-  .ok{background:#2e7d46;color:#fff}.no{background:#8d3030;color:#fff}
-  video{max-height:360px;border-radius:8px}
-  #autonomy{margin:12px 0;color:#9ad}
+  button{padding:8px 16px;border-radius:8px;border:0;cursor:pointer;font-size:14px}
+  .primary{background:#4263eb;color:#fff}.ok{background:#2e7d46;color:#fff}.no{background:#8d3030;color:#fff}
+  button:disabled{opacity:.4;cursor:default}
+  input[type=text]{padding:8px;border-radius:8px;border:1px solid #444;background:#111;color:#eee;min-width:220px}
+  video{max-height:340px;border-radius:8px}
+  #log{background:#0c0c0e;border-radius:8px;padding:10px;font:12px/1.6 monospace;max-height:180px;overflow-y:auto;white-space:pre-wrap;color:#9ad}
+  .badge{padding:3px 10px;border-radius:999px;font-size:12px}
+  .on{background:#173d26;color:#6bff9e}.off{background:#4a1d1d;color:#ff8a8a}
+  #autonomy{color:#9ad;font-size:13px;margin-top:8px}
 </style>
-<h1>shortform — 승인 큐 / 상태 보드</h1>
-<div id="autonomy"></div>
-<table id="jobs"><tr><th>id</th><th>트랙</th><th>상태</th><th>카테고리</th>
-<th>제목</th><th>리스크</th><th>미리보기/판정</th></tr></table>
+
+<h1>🎬 shortform — 숏폼 자동 생성 스튜디오</h1>
+
+<div class="card">
+  <div class="row" id="setup"></div>
+</div>
+
+<div class="card">
+  <b>1. 영상 넣기</b>
+  <div class="row" style="margin-top:8px">
+    <input type="file" id="file" accept="video/mp4,video/*">
+    <input type="text" id="title" placeholder="영상 제목 (작업용)">
+    <button class="primary" onclick="ingest()">영상 추가</button>
+    <span style="color:#888">또는</span>
+    <button onclick="discover()">해외 트렌드에서 자동으로 찾기</button>
+  </div>
+</div>
+
+<div class="card">
+  <b>2. 만들기</b>
+  <div class="row" style="margin-top:8px">
+    <button class="primary" id="runbtn" onclick="run()">▶ 파이프라인 실행 (전사→대본→TTS→편집→렌더)</button>
+    <span id="runstate"></span>
+  </div>
+  <div id="log" style="margin-top:10px;display:none"></div>
+</div>
+
+<div class="card">
+  <b>3. 확인·승인</b>
+  <div id="autonomy"></div>
+  <table id="jobs"><tr><th>id</th><th>상태</th><th>카테고리</th><th>제목</th><th>리스크</th><th>미리보기 / 판정</th></tr></table>
+</div>
+
 <script>
-async function load(){
+const $ = id => document.getElementById(id);
+
+async function loadSetup(){
+  const s = await (await fetch('/api/setup')).json();
+  const item = (ok, label, hint) =>
+    `<span class="badge ${ok?'on':'off'}">${ok?'✓':'✗'} ${label}</span>` + (ok?'':`<small style="color:#888">${hint}</small>`);
+  $('setup').innerHTML = [
+    item(s.anthropic_key, 'Claude API 키', '.env에 ANTHROPIC_API_KEY 입력 후 재시작'),
+    item(s.ffmpeg, 'ffmpeg', 'winget install ffmpeg 후 재시작'),
+    item(s.whisper, 'Whisper(전사)', 'pip install -e ".[media]"'),
+    item(s.youtube_key, 'YouTube 키(자동 소싱용·선택)', ''),
+  ].join(' ');
+}
+
+async function ingest(){
+  const f = $('file').files[0];
+  if(!f){ alert('영상 파일을 선택하세요'); return; }
+  const fd = new FormData();
+  fd.append('file', f);
+  fd.append('title', $('title').value || f.name);
+  const r = await fetch('/api/ingest', {method:'POST', body:fd});
+  if(r.ok){ $('title').value=''; $('file').value=''; loadJobs(); alert('등록 완료! "파이프라인 실행"을 누르세요.'); }
+  else alert('등록 실패: ' + (await r.text()));
+}
+
+async function discover(){
+  const r = await fetch('/api/discover', {method:'POST'});
+  const t = await r.json();
+  alert(r.ok ? `신규 소재 ${t.created}건 등록` : (t.detail || '실패'));
+  loadJobs();
+}
+
+async function run(){
+  const r = await fetch('/api/run', {method:'POST'});
+  if(!r.ok){ alert((await r.json()).detail); return; }
+  pollLog();
+}
+
+async function pollLog(){
+  const d = await (await fetch('/api/run/log')).json();
+  $('log').style.display = 'block';
+  $('log').textContent = d.log.join('\n');
+  $('log').scrollTop = $('log').scrollHeight;
+  $('runbtn').disabled = d.running;
+  $('runstate').textContent = d.running ? '실행 중... (첫 실행은 모델 다운로드로 오래 걸립니다)' : '';
+  if(d.running) setTimeout(pollLog, 2000); else loadJobs();
+}
+
+async function loadJobs(){
   const auto = await (await fetch('/api/autonomy')).json();
-  document.getElementById('autonomy').textContent = auto.map(a =>
-    `${a.track}: Level ${a.level} (엔진-운영자 일치율 ${(a.agreement*100).toFixed(1)}% / 표본 ${a.samples})`).join('  |  ');
+  $('autonomy').textContent = auto.map(a =>
+    `${a.track}: 자동화 Level ${a.level} (엔진-운영자 일치율 ${(a.agreement*100).toFixed(1)}% / 표본 ${a.samples})`).join('  |  ');
   const jobs = await (await fetch('/api/jobs')).json();
-  const t = document.getElementById('jobs');
+  const t = $('jobs');
   t.querySelectorAll('tr:not(:first-child)').forEach(r=>r.remove());
   for(const j of jobs){
     const tr = document.createElement('tr');
@@ -33,19 +118,21 @@ async function load(){
         <button class="ok" onclick="decide(${j.id},true)">승인</button>
         <button class="no" onclick="decide(${j.id},false)">반려</button>`;
     }
-    tr.innerHTML = `<td>${j.id}</td><td>${j.track_id}</td>
-      <td class="${j.state}">${j.state}</td><td>${j.category??''}</td>
+    tr.innerHTML = `<td>${j.id}</td><td class="${j.state}">${j.state}</td>
+      <td>${j.category??''}</td>
       <td>${j.title??j.source_title??''}<br><small style="color:#f66">${j.error??''}</small></td>
       <td>${risk}</td><td>${cell}</td>`;
     t.appendChild(tr);
   }
 }
+
 async function decide(id, approve){
   let reason = '';
-  if(!approve){ reason = prompt('반려 사유 (필수 — 학습 데이터로 사용됩니다)'); if(!reason) return; }
+  if(!approve){ reason = prompt('반려 사유 (필수 — 자동화 학습 데이터로 사용됩니다)'); if(!reason) return; }
   await fetch(`/api/decide/${id}`,{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({approve, reason})});
-  load();
+  loadJobs();
 }
-load(); setInterval(load, 15000);
+
+loadSetup(); loadJobs(); pollLog(); setInterval(loadJobs, 20000);
 </script>

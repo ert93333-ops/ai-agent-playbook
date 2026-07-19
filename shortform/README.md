@@ -3,7 +3,14 @@
 해외 바이럴 → 한국어 해설 쇼츠 → YouTube Shorts 자동 발행. 설계 문서는
 `SPEC.md`, 판단 방법론은 `PLAYBOOK.md`(사람용) + `app/prompts/`(시스템용).
 
-## 설치
+## 가장 쉬운 시작 (GUI)
+
+**Windows: `start.bat` 더블클릭 / Mac: `./start.sh`** — 가상환경 생성,
+의존성 설치, `.env` 생성까지 자동으로 하고 브라우저에 GUI가 열린다.
+GUI에서 영상 업로드 → "파이프라인 실행" → 결과 미리보기·승인까지 전부 가능.
+ffmpeg만 별도 설치 필요: `winget install ffmpeg` (Mac: `brew install ffmpeg`).
+
+## 수동 설치 (CLI)
 
 ```bash
 cd shortform
