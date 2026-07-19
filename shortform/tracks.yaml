@@ -15,6 +15,23 @@ tracks:
     subreddits: [all, videos, interestingasfuck, nextfuckinglevel, gadgets]
     # 멀티 채널 분산 시: youtube_token_file: token.youtube.kr2.json 처럼 지정
 
+  product:                  # 상품 소개 전용 채널 (해설 채널과 완전 분리)
+    enabled: true
+    sourcing: catalog        # products.yaml 카탈로그가 소재 (트렌드 스캔 안 함)
+    target_lang: ko
+    source_langs: [ko]
+    trend_regions: []
+    persona_file: persona.product.yaml
+    tts_voice: ko-KR-SunHiNeural
+    tts_rate: "+10%"
+    publish_slots: ["11:00", "20:00"]   # 쇼핑 골든타임
+    timezone: Asia/Seoul
+    categories: [product]
+    daily_upload_limit: 2
+    # 별도 유튜브 계정 필수 — 이 채널 전용 OAuth 파일 지정:
+    youtube_token_file: token.youtube.product.json
+    youtube_client_secret_file: client_secret.json   # 같은 GCP 프로젝트 사용 가능
+
   en:
     enabled: false          # Phase 5. kr에서 검증된 템플릿 상속 후 활성화
     target_lang: en

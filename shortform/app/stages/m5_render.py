@@ -46,6 +46,14 @@ def render(job: dict) -> None:
 
 def _description(job: dict) -> str:
     from ..config import affiliates
+    if job["category"] == "product":
+        prod = job["payload"]["product"]
+        return "\n".join([
+            job["payload"]["title"], "",
+            f"🛒 구매 링크: {prod['partners_link']}",
+            f"가격: {prod.get('price', '')}", "",
+            "이 게시물은 쿠팡 파트너스 활동의 일환으로, "
+            "이에 따른 일정액의 수수료를 제공받습니다."])
     lines = [job["payload"]["title"], ""]
     # 출처 표기 — commentary/cc_by는 원본 크레딧 필수 (SPEC 0-1-1)
     if job["license_type"] in ("commentary", "cc_by"):

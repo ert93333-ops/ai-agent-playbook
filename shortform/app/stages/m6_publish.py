@@ -92,9 +92,14 @@ def _post_engagement_comment(svc, video_id: str, job: dict) -> None:
 
     API로는 고정(pin)이 불가하므로 작성자 댓글로 게시된다. 실패해도 업로드는 성공.
     """
-    questions = job["payload"].get("insights", {}).get("open_questions", [])
-    text = (f"여러분 생각은 어떤가요? {questions[0]}" if questions
-            else "다음엔 어떤 해외 이슈를 다뤄볼까요? 댓글로 알려주세요 👇")
+    if job["category"] == "product":
+        prod = job["payload"].get("product", {})
+        text = (f"🛒 구매 링크: {prod.get('partners_link', '')}\n"
+                "(쿠팡 파트너스 활동으로 일정 수수료를 제공받습니다)")
+    else:
+        questions = job["payload"].get("insights", {}).get("open_questions", [])
+        text = (f"여러분 생각은 어떤가요? {questions[0]}" if questions
+                else "다음엔 어떤 해외 이슈를 다뤄볼까요? 댓글로 알려주세요 👇")
     try:
         svc.commentThreads().insert(
             part="snippet",

@@ -147,6 +147,8 @@ def hook_patterns(track_id: str, limit: int = 10) -> list[str]:
 def run() -> list[int]:
     created = []
     for track in enabled_tracks():
+        if track.sourcing != "trend":
+            continue   # catalog 트랙(product)은 products.enqueue()가 담당
         collect_benchmarks(track)
         merged = _trending_candidates(track) + _reddit_candidates(track)
         merged.sort(key=lambda c: c["velocity"], reverse=True)

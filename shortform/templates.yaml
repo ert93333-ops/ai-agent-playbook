@@ -61,6 +61,8 @@ persona_tone:
 # 카테고리 조건부 밴딧(M9)이 표본을 쌓기 전의 사전 지식(prior).
 # 표본이 쌓이면 template_stats의 실측 성과가 이 prior를 대체한다.
 category_priors:
+  product:      { voice: sunhi_mid,   persona_tone: dry,      tempo: calm,
+                  series_format: none, title_formula: numeric }
   global_meme:  { voice: injoon_fast, persona_tone: hype,     tempo: fast }
   tech_science: { voice: injoon_calm, persona_tone: serious,  tempo: calm }
   sports:       { voice: injoon_fast, persona_tone: hype,     tempo: fast }

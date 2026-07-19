@@ -101,13 +101,37 @@ def make_title(job: dict, track: Track, script: dict,
                              max_tokens=2000)
 
 
+def write_product_script(job: dict, track: Track, transcript: list[dict],
+                         params: dict) -> dict:
+    """product 트랙: 상품 카탈로그 정보 기반 소개 대본 (전사문은 참고용)."""
+    from ..editing.tts import media_duration
+    p = persona(track)
+    prod = job["payload"]["product"]
+    persona_text = (f"{p['voice']}\n{p['humor']}\n"
+                    f"금지: {', '.join(p['forbidden'])}\n마무리: {p['signoff']}")
+    footage_sec = media_duration(job_dir(job["id"]) / "source.mp4")
+    prompt = llm.load_prompt(
+        "product_script", persona=persona_text, name=prod["name"],
+        price=prod.get("price", ""),
+        selling_points=" / ".join(prod.get("selling_points", [])),
+        target_audience=prod.get("target_audience", ""),
+        avoid=prod.get("avoid", "없음"),
+        footage_sec=int(footage_sec), target_sec=TARGET_SEC)
+    return llm.complete_json(prompt, schemas.SCRIPT,
+                             system=_transcript_system(transcript))
+
+
 def analyze(job: dict) -> None:
     track = tracks()[job["track_id"]]
     params = optimize.resolve(job["template_params"]
                               or optimize.choose_params(job["category"]))
     transcript = transcribe(job)
-    insights = mine_comments(job)
-    script = write_script(job, track, transcript, insights, params)
+    if job["category"] == "product":
+        insights = {"open_questions": []}
+        script = write_product_script(job, track, transcript, params)
+    else:
+        insights = mine_comments(job)
+        script = write_script(job, track, transcript, insights, params)
     titles = make_title(job, track, script, transcript, params)
     with db.conn() as c:
         c.execute("UPDATE jobs SET template_params=? WHERE id=?",

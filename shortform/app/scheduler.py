@@ -32,10 +32,11 @@ def add_jobs(sched) -> None:
     sched.add_job(m8_feedback.weekly_tone_review,
                   CronTrigger(day_of_week="sun", hour=4, minute=0),
                   id="tone-review")
-    from .stages import longform
+    from .stages import longform, products
     sched.add_job(longform.build_weekly,
                   CronTrigger(day_of_week="sat", hour=10, minute=0),
                   id="longform")
+    sched.add_job(products.enqueue, "interval", hours=6, id="products")
     for track in enabled_tracks():
         for slot in track.publish_slots:
             hh, mm = slot.split(":")

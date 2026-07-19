@@ -72,6 +72,15 @@ class Track(BaseModel):
     youtube_token_file: str | None = None
     youtube_client_secret_file: str | None = None
     subreddits: list[str] = []      # Reddit 소싱 (r/all 외 니치 서브레딧)
+    sourcing: str = "trend"         # trend(M1 자동 소싱) | catalog(products.yaml)
+
+
+def products() -> list[dict[str, Any]]:
+    """상품 카탈로그 (products.yaml, 없으면 빈 리스트) — product 트랙용."""
+    path = ROOT / "products.yaml"
+    if not path.exists():
+        return []
+    return _load_yaml(path).get("products", [])
 
 
 def affiliates() -> dict[str, list[str]]:

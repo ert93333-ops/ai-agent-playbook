@@ -1,0 +1,16 @@
+# 상품 카탈로그 — products.yaml로 복사해 사용. product 트랙의 소재 목록.
+# footage: 직접 촬영한 상품 영상/언박싱 mp4 경로 (license=own이므로 권리 문제 없음)
+# partners_link: 본인 쿠팡 상품에 대해 발급한 쿠팡파트너스 링크
+products:
+  - id: wireless-earbuds-01
+    name: "OO 무선 이어폰"
+    footage: ./ingest/products/earbuds.mp4
+    coupang_url: https://www.coupang.com/vp/products/...
+    partners_link: https://link.coupang.com/a/...
+    price: "29,900원"
+    selling_points:
+      - "노이즈캔슬링 + 34시간 재생"
+      - "IPX5 방수 — 운동용으로 강함"
+      - "동급 최저가 대비 리뷰 4.8"
+    target_audience: "출퇴근·운동용 가성비 이어폰 찾는 20~30대"
+    avoid: "타사 브랜드 비교·비방 금지"
