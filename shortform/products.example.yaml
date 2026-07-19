@@ -5,6 +5,10 @@ products:
   - id: wireless-earbuds-01
     name: "OO 무선 이어폰"
     footage: ./ingest/products/earbuds.mp4
+    license: own            # own(본인 촬영) | licensed(공급사 제공 영상)
+    # licensed인 경우 제공 근거 기록 필수:
+    # license: licensed
+    # license_note: "2026-07-15 OO전자 담당자 이메일로 홍보 소스 사용 허가"
     coupang_url: https://www.coupang.com/vp/products/...
     partners_link: https://link.coupang.com/a/...
     price: "29,900원"

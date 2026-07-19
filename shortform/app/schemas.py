@@ -54,6 +54,13 @@ RISK = _obj({
     "violations": _arr(_obj({"check": _S, "detail": _S})),
 })
 
+PRODUCT_RESEARCH = _obj({
+    "opportunities": _arr(_obj({
+        "product": _S, "demand_signal": _S, "angle": _S,
+        "sourcing_hint": _S, "caution": _S,
+    })),
+})
+
 LONGFORM = _obj({
     "title": _S,
     "description": _S,

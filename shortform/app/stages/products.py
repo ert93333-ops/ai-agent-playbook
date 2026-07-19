@@ -29,8 +29,16 @@ def enqueue() -> list[int]:
         if not footage.exists():
             print(f"product {p['id']}: footage not found ({footage}) — skip")
             continue
+        # own(본인 촬영) 또는 licensed(공급사 제공 — license_note에 근거 기록)
+        lic = p.get("license", "own")
+        if lic not in ("own", "licensed"):
+            print(f"product {p['id']}: license={lic!r} not allowed — skip")
+            continue
+        if lic == "licensed" and not p.get("license_note"):
+            print(f"product {p['id']}: licensed는 license_note(제공 근거) 필수 — skip")
+            continue
         job_id = db.create_job(
-            "product", category="product", license_type="own",
+            "product", category="product", license_type=lic,
             source_url=f"product://{p['id']}", source_title=p["name"],
             priority=90,
             payload={"local_path": str(footage.resolve()), "video_id": "",

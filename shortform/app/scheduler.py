@@ -37,6 +37,10 @@ def add_jobs(sched) -> None:
                   CronTrigger(day_of_week="sat", hour=10, minute=0),
                   id="longform")
     sched.add_job(products.enqueue, "interval", hours=6, id="products")
+    from .stages import product_research
+    sched.add_job(product_research.weekly_report,
+                  CronTrigger(day_of_week="mon", hour=9, minute=0),
+                  id="product-research")
     for track in enabled_tracks():
         for slot in track.publish_slots:
             hh, mm = slot.split(":")
