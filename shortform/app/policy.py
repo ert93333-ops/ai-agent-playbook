@@ -71,6 +71,15 @@ def evaluate(job: dict) -> dict:
     - approve: Level 2+이고 저위험·비민감이면 자동 APPROVED
     - hold: 사람 판단 대기 (Level 0~1, 또는 애매/민감 건)
     """
+    if job["category"] == "longform":
+        # 구성 쇼츠들이 이미 개별 심사·승인을 통과 — 최종 확인만 사람에게
+        features = {"risk": {"risk_score": 0}, "perf": 0.5, "level": 0,
+                    "category": "longform"}
+        db.update_payload(job["id"], {"policy": features})
+        record_decision(job["id"], "engine", "approve", risk=0, perf=0.5,
+                        features=features, reason="longform (members pre-approved)")
+        return {"decision": "hold", "auto_applied": False, **features}
+
     risk = risk_review(job)
     perf = perf_score(job)
     level = db.autonomy_level(job["track_id"])

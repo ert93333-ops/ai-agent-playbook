@@ -36,6 +36,22 @@ title_formula:
   numeric:   "수치형 (예: 조회수 3천만 찍은 ○○의 정체)"
   quote:     "인용형 (예: \"이건 처음 본다\" 현지 반응 터진 ○○)"
 
+# 시리즈 포맷 — 고정 코너/멘트로 채널 정체성을 만들어 구독 전환을 올린다.
+# intro_line은 훅 직후 1회, outro_line은 마무리 문장으로 대본에 삽입된다.
+series_format:
+  none:
+    corner_name: ""
+    intro_line: ""
+    outro_line: ""
+  global_now:
+    corner_name: "지금 해외에선"
+    intro_line: "지금 해외에선, 오늘의 이슈입니다."
+    outro_line: "내일도 해외에서 터진 것만 골라옵니다."
+  translated:
+    corner_name: "해석해드림"
+    intro_line: "한국엔 아직 안 알려진 거, 해석해드립니다."
+    outro_line: "다음 것도 먼저 해석해드릴게요."
+
 persona_tone:
   standard:  { humor_density: normal, stance: "같이 신기해하는" }
   dry:       { humor_density: low,    stance: "담백한 정보 전달" }

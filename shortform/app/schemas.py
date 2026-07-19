@@ -54,6 +54,11 @@ RISK = _obj({
     "violations": _arr(_obj({"check": _S, "detail": _S})),
 })
 
+LONGFORM = _obj({
+    "title": _S,
+    "description": _S,
+})
+
 TONE_REVIEW = _obj({
     "persona_diffs": _arr(_obj({"target": _S, "change": _S, "evidence": _S})),
     "title_prompt_diffs": _arr(_obj({"target": _S, "change": _S, "evidence": _S})),

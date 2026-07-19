@@ -68,6 +68,7 @@ async function loadSetup(){
     item(s.ffmpeg, 'ffmpeg', 'winget install ffmpeg 후 재시작'),
     item(s.whisper, 'Whisper(전사)', 'pip install -e ".[media]"'),
     item(s.youtube_key, 'YouTube 키(자동 소싱용·선택)', ''),
+    `<span class="badge ${s.llm_cost_month < s.llm_budget ? 'on':'off'}">💰 이번 달 LLM $${s.llm_cost_month} / $${s.llm_budget}</span>`,
   ].join(' ');
 }
 

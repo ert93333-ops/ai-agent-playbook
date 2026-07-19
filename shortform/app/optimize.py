@@ -14,7 +14,8 @@ from typing import Any
 from . import db
 from .config import templates
 
-DIMENSIONS = ["layout", "tempo", "voice", "title_formula", "persona_tone"]
+DIMENSIONS = ["layout", "tempo", "voice", "title_formula", "persona_tone",
+              "series_format"]
 MIN_TRIALS = 10      # PLAYBOOK §7: 표본 10 미만이면 결론 내리지 않는다
 EXPLORE_TRIALS = 5   # 초반 탐색기: 프리셋당 이 표본을 채울 때까지 강제 다양화
 

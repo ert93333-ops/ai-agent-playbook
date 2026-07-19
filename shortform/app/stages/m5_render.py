@@ -45,12 +45,16 @@ def render(job: dict) -> None:
 
 
 def _description(job: dict) -> str:
+    from ..config import affiliates
     lines = [job["payload"]["title"], ""]
     # 출처 표기 — commentary/cc_by는 원본 크레딧 필수 (SPEC 0-1-1)
     if job["license_type"] in ("commentary", "cc_by"):
         lines += [f"원본: {job['payload'].get('source_channel', '')} "
                   f"({job['source_url']})",
                   "해설·편집: 본 채널 제작"]
+    aff = affiliates().get(job["category"], [])
+    if aff:
+        lines += ["", *aff]
     return "\n".join(lines)
 
 

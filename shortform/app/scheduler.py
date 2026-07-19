@@ -28,10 +28,14 @@ def add_jobs(sched) -> None:
     sched.add_job(m1_discover.run, "interval", hours=2, id="m1")
     sched.add_job(pipeline_tick, "interval", minutes=10, id="pipeline",
                   max_instances=1, coalesce=True)
-    sched.add_job(m8_feedback.run, CronTrigger(hour=3, minute=0), id="m8")
+    sched.add_job(m8_feedback.run, "interval", hours=1, id="m8")  # 3h/24h/72h 창
     sched.add_job(m8_feedback.weekly_tone_review,
                   CronTrigger(day_of_week="sun", hour=4, minute=0),
                   id="tone-review")
+    from .stages import longform
+    sched.add_job(longform.build_weekly,
+                  CronTrigger(day_of_week="sat", hour=10, minute=0),
+                  id="longform")
     for track in enabled_tracks():
         for slot in track.publish_slots:
             hh, mm = slot.split(":")

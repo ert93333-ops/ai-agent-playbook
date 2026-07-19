@@ -12,6 +12,8 @@ tracks:
     timezone: Asia/Seoul
     categories: [global_meme, tech_science, sports, incident]
     daily_upload_limit: 3
+    subreddits: [all, videos, interestingasfuck, nextfuckinglevel, gadgets]
+    # 멀티 채널 분산 시: youtube_token_file: token.youtube.kr2.json 처럼 지정
 
   en:
     enabled: false          # Phase 5. kr에서 검증된 템플릿 상속 후 활성화

@@ -60,6 +60,50 @@ def _trending_candidates(track: Track) -> list[dict]:
     return out
 
 
+def _reddit_candidates(track: Track) -> list[dict]:
+    """Reddit rising — 유튜브 트렌드보다 반나절~하루 빠른 선점 신호.
+
+    유튜브 링크가 걸린 포스트만 후보로 쓴다 (다운로드·전사 파이프라인 호환).
+    무료 공개 API, 키 불필요.
+    """
+    subs = track.subreddits or ["all"]
+    out = []
+    for sub in subs:
+        try:
+            r = httpx.get(
+                f"https://www.reddit.com/r/{sub}/rising.json",
+                params={"limit": 50},
+                headers={"User-Agent": "shortform-pipeline/0.1"}, timeout=30)
+            r.raise_for_status()
+        except httpx.HTTPError:
+            continue
+        for post in r.json().get("data", {}).get("children", []):
+            d = post["data"]
+            url = d.get("url", "")
+            vid = None
+            if "youtube.com/watch" in url and "v=" in url:
+                vid = url.split("v=")[1][:11]
+            elif "youtu.be/" in url:
+                vid = url.split("youtu.be/")[1][:11]
+            if not vid:
+                continue
+            hours = max(0.5, (time.time() - d["created_utc"]) / 3600)
+            if hours > 48:
+                continue
+            out.append({
+                "video_id": vid, "title": d["title"],
+                "channel": f"r/{d.get('subreddit', sub)}",
+                "channel_url": "", "description": d.get("selftext", "")[:500],
+                "published_at": time.strftime(
+                    "%Y-%m-%dT%H:%M:%SZ", time.gmtime(d["created_utc"])),
+                "views": d.get("score", 0), "hours_since": round(hours, 1),
+                # Reddit 점수는 YT 조회수와 스케일이 다름 — 업보트 속도 x100 보정
+                "velocity": d.get("score", 0) / hours * 100,
+                "category_hint": d.get("subreddit", ""),
+            })
+    return out
+
+
 def _already_seen(video_id: str) -> bool:
     with db.conn() as c:
         return c.execute(
@@ -104,8 +148,15 @@ def run() -> list[int]:
     created = []
     for track in enabled_tracks():
         collect_benchmarks(track)
-        candidates = [c for c in _trending_candidates(track)
-                      if not _already_seen(c["video_id"])]
+        merged = _trending_candidates(track) + _reddit_candidates(track)
+        merged.sort(key=lambda c: c["velocity"], reverse=True)
+        seen: set[str] = set()
+        candidates = []
+        for c in merged:
+            if c["video_id"] in seen or _already_seen(c["video_id"]):
+                continue
+            seen.add(c["video_id"])
+            candidates.append(c)
         for cand in candidates[:LLM_CANDIDATES_PER_TRACK]:
             verdict = _score_with_llm(track, cand)
             if not verdict["gate_pass"] or verdict["score"] < MIN_SCORE:

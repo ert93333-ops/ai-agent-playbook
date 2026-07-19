@@ -73,6 +73,12 @@ def write_script(job: dict, track: Track, transcript: list[dict],
     persona_text = (f"{p['voice']}\n유머: {p['humor']}\n"
                     f"이번 영상 톤 지시: {tone} / 드립 밀도: {humor}\n"
                     f"금지: {', '.join(p['forbidden'])}\n마무리: {p['signoff']}")
+    if params.get("corner_name"):
+        persona_text += (
+            f"\n\n[시리즈 포맷 — 반드시 지킬 것] 코너명: {params['corner_name']}"
+            f"\n훅 직후 두 번째 문장: \"{params['intro_line']}\""
+            f"\n마지막 문장: \"{params['outro_line']}\""
+            "\n(고정 멘트는 토씨까지 그대로 — 채널 정체성을 만드는 장치다)")
     prompt = llm.load_prompt(
         "commentary_script", persona=persona_text, category=job["category"],
         angle_hint=job["payload"].get("angle_hint", ""),

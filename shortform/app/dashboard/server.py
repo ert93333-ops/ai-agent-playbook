@@ -59,6 +59,8 @@ def setup_check() -> dict:
         checks["whisper"] = True
     except ImportError:
         checks["whisper"] = False
+    checks["llm_cost_month"] = round(db.month_llm_cost(), 2)
+    checks["llm_budget"] = s.monthly_llm_budget_usd
     return checks
 
 

@@ -57,9 +57,14 @@ CREATE TABLE IF NOT EXISTS policy_state (        -- 트랙별 자율화 레벨 (
 );
 CREATE TABLE IF NOT EXISTS performance (         -- M8 성과 수집 (지연 라벨)
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    job_id INTEGER, platform TEXT, measured_at REAL,
-    views INTEGER, avg_view_pct REAL, likes INTEGER,
-    comments INTEGER, claim_flag INTEGER DEFAULT 0
+    job_id INTEGER, platform TEXT, window TEXT DEFAULT '72h',
+    measured_at REAL, views INTEGER, avg_view_pct REAL, likes INTEGER,
+    comments INTEGER, subs_gained INTEGER DEFAULT 0, claim_flag INTEGER DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS llm_usage (           -- 예산 가드
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ts REAL, model TEXT, input_tokens INTEGER, output_tokens INTEGER,
+    cost_usd REAL
 );
 CREATE TABLE IF NOT EXISTS template_stats (      -- M9 카테고리 조건부 밴딧 통계
     dimension TEXT, preset TEXT, category TEXT DEFAULT '*',
@@ -179,6 +184,22 @@ def set_autonomy_level(track_id: str, level: int) -> None:
             " ON CONFLICT(track_id) DO UPDATE SET level=excluded.level,"
             " updated_at=excluded.updated_at",
             (track_id, level, time.time()))
+
+
+def record_llm_usage(model: str, input_tokens: int, output_tokens: int,
+                     cost_usd: float) -> None:
+    with conn() as c:
+        c.execute("INSERT INTO llm_usage (ts, model, input_tokens, output_tokens,"
+                  " cost_usd) VALUES (?,?,?,?,?)",
+                  (time.time(), model, input_tokens, output_tokens, cost_usd))
+
+
+def month_llm_cost() -> float:
+    month_start = time.time() - 30 * 86400
+    with conn() as c:
+        row = c.execute("SELECT COALESCE(SUM(cost_usd),0) AS s FROM llm_usage"
+                        " WHERE ts>=?", (month_start,)).fetchone()
+    return row["s"]
 
 
 def blacklist_channel(channel_url: str, reason: str) -> None:

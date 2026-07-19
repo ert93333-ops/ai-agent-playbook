@@ -50,6 +50,10 @@ class Settings(BaseSettings):
     daily_upload_limit_ig: int = 3
     alert_webhook_url: str = ""
 
+    # 시기별 최적화 목표: subs(YPP 진입 전 — 구독 전환) | retention(이후 — 완주율)
+    optimize_goal: str = "subs"
+    monthly_llm_budget_usd: float = 50.0
+
 
 class Track(BaseModel):
     id: str
@@ -64,6 +68,18 @@ class Track(BaseModel):
     timezone: str
     categories: list[str]
     daily_upload_limit: int
+    # 멀티 채널 리스크 분산: 트랙별 업로드 계정 (비우면 전역 설정 사용)
+    youtube_token_file: str | None = None
+    youtube_client_secret_file: str | None = None
+    subreddits: list[str] = []      # Reddit 소싱 (r/all 외 니치 서브레딧)
+
+
+def affiliates() -> dict[str, list[str]]:
+    """카테고리 → 제휴 링크 문단 (affiliates.yaml, 없으면 빈 dict)."""
+    path = ROOT / "affiliates.yaml"
+    if not path.exists():
+        return {}
+    return _load_yaml(path)
 
 
 @functools.lru_cache
