@@ -50,6 +50,15 @@ def _model(tier: str) -> str:
     return s.shortform_model_light if tier == "light" else s.shortform_model
 
 
+# adaptive thinking을 지원하는 모델 계열 (Haiku 4.5 등은 미지원)
+_ADAPTIVE_OK = ("opus-4-6", "opus-4-7", "opus-4-8", "sonnet-5",
+                "sonnet-4-6", "fable-5", "mythos-5")
+
+
+def _thinking(model: str) -> dict | None:
+    return {"type": "adaptive"} if any(k in model for k in _ADAPTIVE_OK) else None
+
+
 def _budget_guard() -> None:
     """월 예산 초과 시 호출 차단 — 무인 루프의 비용 폭주 방지."""
     from . import db
@@ -72,13 +81,15 @@ def complete_json(prompt: str, schema: dict[str, Any], *,
                   system: str | None = None, max_tokens: int = 16000,
                   tier: str = "heavy") -> dict[str, Any]:
     _budget_guard()
+    model = _model(tier)
     kwargs: dict[str, Any] = dict(
-        model=_model(tier),
+        model=model,
         max_tokens=max_tokens,
-        thinking={"type": "adaptive"},
         output_config={"format": {"type": "json_schema", "schema": schema}},
         messages=[{"role": "user", "content": prompt}],
     )
+    if (th := _thinking(model)) is not None:
+        kwargs["thinking"] = th
     if system:
         kwargs["system"] = [{"type": "text", "text": system,
                              "cache_control": {"type": "ephemeral"}}]
@@ -93,12 +104,14 @@ def complete_json(prompt: str, schema: dict[str, Any], *,
 def complete_text(prompt: str, *, system: str | None = None,
                   max_tokens: int = 8000, tier: str = "heavy") -> str:
     _budget_guard()
+    model = _model(tier)
     kwargs: dict[str, Any] = dict(
-        model=_model(tier),
+        model=model,
         max_tokens=max_tokens,
-        thinking={"type": "adaptive"},
         messages=[{"role": "user", "content": prompt}],
     )
+    if (th := _thinking(model)) is not None:
+        kwargs["thinking"] = th
     if system:
         kwargs["system"] = [{"type": "text", "text": system,
                              "cache_control": {"type": "ephemeral"}}]
