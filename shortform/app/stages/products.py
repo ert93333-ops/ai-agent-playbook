@@ -27,8 +27,17 @@ def enqueue() -> list[int]:
             continue
         footage = Path(p["footage"])
         if not footage.exists():
-            print(f"product {p['id']}: footage not found ({footage}) — skip")
-            continue
+            # 1순위: 상품 페이지에서 공급사 홍보 영상 자동 추출
+            from .product_fetch import try_fetch
+            note = try_fetch(p, footage)
+            if note:
+                p = {**p, "license": "licensed", "license_note": note}
+                print(f"product {p['id']}: 공급사 영상 자동 추출 성공 → {footage}")
+            else:
+                # 2순위: 아웃리치(왕왕/메일)가 소스를 요청한다 — 여기선 스킵
+                print(f"product {p['id']}: footage 없음, 페이지 추출 실패 — "
+                      "아웃리치 대기")
+                continue
         # own(본인 촬영) 또는 licensed(공급사 제공 — license_note에 근거 기록)
         lic = p.get("license", "own")
         if lic not in ("own", "licensed"):
