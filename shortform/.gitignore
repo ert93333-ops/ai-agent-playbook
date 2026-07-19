@@ -1,0 +1,9 @@
+work/
+out/
+*.db
+.env
+token.*.json
+client_secret*.json
+__pycache__/
+*.pyc
+.venv/

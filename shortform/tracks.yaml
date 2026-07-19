@@ -1,0 +1,27 @@
+# 트랙 = 대상 시장. kr 단독 런칭, en/zh-hant는 Phase 5에서 활성화.
+tracks:
+  kr:
+    enabled: true
+    target_lang: ko
+    source_langs: [en, ja]
+    trend_regions: [US, GB, JP]
+    persona_file: persona.kr.yaml
+    tts_voice: ko-KR-InJoonNeural
+    tts_rate: "+15%"
+    publish_slots: ["07:30", "12:30", "19:30"]   # KST
+    timezone: Asia/Seoul
+    categories: [global_meme, tech_science, sports, incident]
+    daily_upload_limit: 3
+
+  en:
+    enabled: false          # Phase 5. kr에서 검증된 템플릿 상속 후 활성화
+    target_lang: en
+    source_langs: [ko, ja]
+    trend_regions: [KR, JP]
+    persona_file: persona.en.yaml
+    tts_voice: en-US-GuyNeural
+    tts_rate: "+10%"
+    publish_slots: ["08:00", "13:00", "20:00"]   # ET
+    timezone: America/New_York
+    categories: [global_meme, tech_science, sports, incident]
+    daily_upload_limit: 3

@@ -1,0 +1,20 @@
+# 권리 확보 소스 카탈로그. sources.yaml로 복사해 사용.
+# license_type: own | licensed | cc_by | public  (commentary는 M1 트렌드 스캔이 자동 부여)
+sources:
+  - id: my-channel
+    license_type: own
+    kind: youtube_channel
+    url: https://www.youtube.com/@mychannel
+    note: 본인 채널 원본
+
+  - id: local-footage
+    license_type: own
+    kind: local_dir
+    path: ./ingest/
+    note: 직접 촬영/제작한 로컬 파일 투입구
+
+  - id: nasa
+    license_type: public
+    kind: youtube_channel
+    url: https://www.youtube.com/@NASA
+    note: 미항공우주국 공공저작물 (NASA media usage guidelines 확인됨)

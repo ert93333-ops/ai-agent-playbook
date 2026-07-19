@@ -1,0 +1,51 @@
+# M9 변형 실험 차원. M4가 타임라인 컴파일 시 파라미터로 받는다.
+# 각 차원의 프리셋 성과는 template_stats 테이블에 축적되어 밴딧이 학습한다.
+layout:
+  center_bold:        # 자막 중앙 대형
+    sub_align: center
+    sub_margin_v: 640
+    sub_font_size: 96
+    hook_frame: hook-frame-v1.png
+  lower_classic:      # 자막 하단 고전형
+    sub_align: bottom
+    sub_margin_v: 560
+    sub_font_size: 84
+    hook_frame: null
+
+tempo:
+  fast:
+    target_shot_sec: 2.0
+    silence_cut_db: -35
+    silence_cut_min_sec: 0.35
+    zoom_on_emphasis: true
+  calm:
+    target_shot_sec: 3.5
+    silence_cut_db: -38
+    silence_cut_min_sec: 0.6
+    zoom_on_emphasis: false
+
+voice:
+  injoon_fast:  { tts_voice: ko-KR-InJoonNeural,   tts_rate: "+20%" }  # 남성, 에너지
+  injoon_calm:  { tts_voice: ko-KR-InJoonNeural,   tts_rate: "+8%" }   # 남성, 차분
+  sunhi_mid:    { tts_voice: ko-KR-SunHiNeural,    tts_rate: "+12%" }  # 여성, 밝음
+  hyunsu_low:   { tts_voice: ko-KR-HyunsuMultilingualNeural, tts_rate: "+10%" }  # 남성, 저음
+
+title_formula:
+  question:  "질문형 (예: 지금 미국에서 ○○이 난리인 이유?)"
+  reversal:  "반전형 (예: 다들 ○○인 줄 알았는데 정반대였음)"
+  numeric:   "수치형 (예: 조회수 3천만 찍은 ○○의 정체)"
+  quote:     "인용형 (예: \"이건 처음 본다\" 현지 반응 터진 ○○)"
+
+persona_tone:
+  standard:  { humor_density: normal, stance: "같이 신기해하는" }
+  dry:       { humor_density: low,    stance: "담백한 정보 전달" }
+  hype:      { humor_density: high,   stance: "흥분 리액션 (밈·스포츠용)" }
+  serious:   { humor_density: none,   stance: "차분한 설명 (사건·테크용)" }
+
+# 카테고리 조건부 밴딧(M9)이 표본을 쌓기 전의 사전 지식(prior).
+# 표본이 쌓이면 template_stats의 실측 성과가 이 prior를 대체한다.
+category_priors:
+  global_meme:  { voice: injoon_fast, persona_tone: hype,     tempo: fast }
+  tech_science: { voice: injoon_calm, persona_tone: serious,  tempo: calm }
+  sports:       { voice: injoon_fast, persona_tone: hype,     tempo: fast }
+  incident:     { voice: hyunsu_low,  persona_tone: serious,  tempo: calm }

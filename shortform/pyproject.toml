@@ -1,0 +1,35 @@
+[project]
+name = "shortform"
+version = "0.1.0"
+description = "자동 숏폼 생성·등록 파이프라인 (번역·해설 쇼츠)"
+requires-python = ">=3.11"
+dependencies = [
+    "anthropic>=0.116.0",
+    "pydantic>=2.7",
+    "pydantic-settings>=2.3",
+    "pyyaml>=6.0",
+    "httpx>=0.27",
+]
+
+[project.optional-dependencies]
+# 미디어 처리 (Phase 1 렌더 코어)
+media = [
+    "faster-whisper>=1.0",
+    "edge-tts>=6.1",
+    "yt-dlp>=2025.1.1",
+]
+# 업로드 (Phase 2)
+publish = [
+    "google-api-python-client>=2.100",
+    "google-auth-oauthlib>=1.2",
+]
+# 대시보드/스케줄러 (Phase 2~3)
+serve = [
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+    "apscheduler>=3.10",
+]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

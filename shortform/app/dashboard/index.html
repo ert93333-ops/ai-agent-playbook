@@ -1,0 +1,51 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>shortform 대시보드</title>
+<style>
+  body{font-family:Pretendard,-apple-system,'Malgun Gothic',sans-serif;background:#111;color:#eee;margin:24px}
+  h1{font-size:20px} table{border-collapse:collapse;width:100%;font-size:14px}
+  td,th{border-bottom:1px solid #333;padding:8px;text-align:left}
+  .RENDERED{color:#ffd24d}.FAILED,.REJECTED,.BLOCKED_RIGHTS{color:#ff6b6b}
+  .DONE,.APPROVED,.PUBLISHED_YT{color:#6bff9e}
+  button{margin-right:6px;padding:4px 10px;border-radius:6px;border:0;cursor:pointer}
+  .ok{background:#2e7d46;color:#fff}.no{background:#8d3030;color:#fff}
+  video{max-height:360px;border-radius:8px}
+  #autonomy{margin:12px 0;color:#9ad}
+</style>
+<h1>shortform — 승인 큐 / 상태 보드</h1>
+<div id="autonomy"></div>
+<table id="jobs"><tr><th>id</th><th>트랙</th><th>상태</th><th>카테고리</th>
+<th>제목</th><th>리스크</th><th>미리보기/판정</th></tr></table>
+<script>
+async function load(){
+  const auto = await (await fetch('/api/autonomy')).json();
+  document.getElementById('autonomy').textContent = auto.map(a =>
+    `${a.track}: Level ${a.level} (엔진-운영자 일치율 ${(a.agreement*100).toFixed(1)}% / 표본 ${a.samples})`).join('  |  ');
+  const jobs = await (await fetch('/api/jobs')).json();
+  const t = document.getElementById('jobs');
+  t.querySelectorAll('tr:not(:first-child)').forEach(r=>r.remove());
+  for(const j of jobs){
+    const tr = document.createElement('tr');
+    const risk = j.policy?.risk?.risk_score ?? '';
+    let cell = '';
+    if(j.state==='RENDERED'){
+      cell = `<video src="/api/preview/${j.id}" controls preload="none"></video><br>
+        <button class="ok" onclick="decide(${j.id},true)">승인</button>
+        <button class="no" onclick="decide(${j.id},false)">반려</button>`;
+    }
+    tr.innerHTML = `<td>${j.id}</td><td>${j.track_id}</td>
+      <td class="${j.state}">${j.state}</td><td>${j.category??''}</td>
+      <td>${j.title??j.source_title??''}<br><small style="color:#f66">${j.error??''}</small></td>
+      <td>${risk}</td><td>${cell}</td>`;
+    t.appendChild(tr);
+  }
+}
+async function decide(id, approve){
+  let reason = '';
+  if(!approve){ reason = prompt('반려 사유 (필수 — 학습 데이터로 사용됩니다)'); if(!reason) return; }
+  await fetch(`/api/decide/${id}`,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({approve, reason})});
+  load();
+}
+load(); setInterval(load, 15000);
+</script>
