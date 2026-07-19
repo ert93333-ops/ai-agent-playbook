@@ -49,6 +49,8 @@ class Settings(BaseSettings):
     daily_upload_limit_yt: int = 3
     daily_upload_limit_ig: int = 3
     alert_webhook_url: str = ""
+    telegram_bot_token: str = ""
+    telegram_chat_id: str = ""
 
     # 시기별 최적화 목표: subs(YPP 진입 전 — 구독 전환) | retention(이후 — 완주율)
     optimize_goal: str = "subs"

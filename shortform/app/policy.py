@@ -146,10 +146,20 @@ def circuit_breaker(track_id: str, *, reason: str, copyright_strike: bool = Fals
 
 
 def alert(message: str) -> None:
-    url = settings().alert_webhook_url
-    if url:
+    s = settings()
+    if s.telegram_bot_token and s.telegram_chat_id:
         try:
-            httpx.post(url, json={"text": message}, timeout=10)
+            httpx.post(
+                f"https://api.telegram.org/bot{s.telegram_bot_token}/sendMessage",
+                json={"chat_id": s.telegram_chat_id, "text": message},
+                timeout=10)
+        except httpx.HTTPError:
+            pass
+    if s.alert_webhook_url:
+        try:
+            # text=Slack / content=Discord — 양쪽 웹훅 모두 동작
+            httpx.post(s.alert_webhook_url,
+                       json={"text": message, "content": message}, timeout=10)
         except httpx.HTTPError:
             pass
     print(f"ALERT: {message}")
