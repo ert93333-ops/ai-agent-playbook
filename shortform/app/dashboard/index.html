@@ -41,9 +41,12 @@
 <div class="card">
   <b>2. 만들기</b>
   <div class="row" style="margin-top:8px">
-    <button class="primary" id="runbtn" onclick="run()">▶ 파이프라인 실행 (전사→대본→TTS→편집→렌더)</button>
+    <button class="primary" id="runbtn" onclick="run()">▶ 한 번 실행 (전사→대본→TTS→편집→렌더)</button>
+    <button class="ok" id="autobtn" onclick="toggleAuto()">🔁 자동 모드 시작</button>
     <span id="runstate"></span>
   </div>
+  <small style="color:#888">자동 모드: 끄기 전까지 트렌드 스캔(2시간) → 편집(10분) → 발행 슬롯 업로드 → 성과 수집(매일 03시)이 계속 돕니다.
+  업로드는 자동화 레벨을 따릅니다 — Level 0에서는 아래에서 승인한 영상만 발행 슬롯에 올라갑니다.</small>
   <div id="log" style="margin-top:10px;display:none"></div>
 </div>
 
@@ -92,6 +95,22 @@ async function run(){
   pollLog();
 }
 
+async function toggleAuto(){
+  const st = await (await fetch('/api/auto/status')).json();
+  const url = st.auto ? '/api/auto/stop' : '/api/auto/start';
+  const r = await fetch(url, {method:'POST'});
+  if(!r.ok){ alert((await r.json()).detail); return; }
+  refreshAuto(); pollLog();
+}
+
+async function refreshAuto(){
+  const st = await (await fetch('/api/auto/status')).json();
+  const b = $('autobtn');
+  b.textContent = st.auto ? '⏹ 자동 모드 중지' : '🔁 자동 모드 시작';
+  b.className = st.auto ? 'no' : 'ok';
+  $('runbtn').style.display = st.auto ? 'none' : '';
+}
+
 async function pollLog(){
   const d = await (await fetch('/api/run/log')).json();
   $('log').style.display = 'block';
@@ -134,5 +153,6 @@ async function decide(id, approve){
   loadJobs();
 }
 
-loadSetup(); loadJobs(); pollLog(); setInterval(loadJobs, 20000);
+loadSetup(); loadJobs(); pollLog(); refreshAuto();
+setInterval(loadJobs, 20000); setInterval(refreshAuto, 20000);
 </script>

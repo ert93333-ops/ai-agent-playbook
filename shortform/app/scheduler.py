@@ -23,8 +23,8 @@ def pipeline_tick() -> None:
     policy.run()
 
 
-def main() -> None:
-    sched = BlockingScheduler()
+def add_jobs(sched) -> None:
+    """스케줄 구성 — CLI 상주(run)와 대시보드 자동 모드가 공유한다."""
     sched.add_job(m1_discover.run, "interval", hours=2, id="m1")
     sched.add_job(pipeline_tick, "interval", minutes=10, id="pipeline",
                   max_instances=1, coalesce=True)
@@ -38,6 +38,11 @@ def main() -> None:
             sched.add_job(m6_publish.run, CronTrigger(
                 hour=int(hh), minute=int(mm), timezone=track.timezone),
                 id=f"publish-{track.id}-{slot}")
+
+
+def main() -> None:
+    sched = BlockingScheduler()
+    add_jobs(sched)
     print("scheduler up:", [str(j) for j in sched.get_jobs()])
     sched.start()
 

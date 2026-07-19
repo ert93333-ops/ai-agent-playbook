@@ -91,6 +91,58 @@ def run_log() -> dict:
     return {"running": _run["running"], "log": _run["log"][-100:]}
 
 
+_auto = {"sched": None}
+
+
+def _kickoff() -> None:
+    """자동 모드 시작 직후 2시간 기다리지 않고 첫 사이클을 바로 돈다."""
+    from ..stages import m1_discover
+    _log("자동 모드 시작 — 트렌드 스캔 중...")
+    try:
+        created = m1_discover.run()
+        _log(f"트렌드 스캔 완료: 신규 소재 {len(created)}건")
+    except Exception as e:  # noqa: BLE001
+        _log(f"트렌드 스캔 오류: {e}")
+    _pipeline_thread()
+
+
+@app.post("/api/auto/start")
+def auto_start() -> dict:
+    """자동 모드: 끄기 전까지 트렌드 스캔→편집→발행→성과수집 무한 루프.
+
+    발행은 여전히 게이트를 따른다 — Level 0~1에서는 렌더까지 자동으로 쌓이고
+    업로드는 승인된 건만, Level 2+ & AUTO_PUBLISH=true면 저위험 건 자동 발행.
+    """
+    if _auto["sched"] is not None:
+        raise HTTPException(409, "이미 자동 모드입니다")
+    if not settings().youtube_api_key:
+        raise HTTPException(400, "자동 소싱에는 .env의 YOUTUBE_API_KEY가 필요합니다")
+    from apscheduler.schedulers.background import BackgroundScheduler
+    from ..scheduler import add_jobs
+    sched = BackgroundScheduler()
+    add_jobs(sched)
+    sched.start()
+    sched.add_job(_kickoff, id="kickoff")  # 시작 직후 첫 사이클 즉시 실행
+    _auto["sched"] = sched
+    _log("자동 모드 ON: 트렌드 2h / 편집 10m / 발행 슬롯 / 성과수집 03:00")
+    return {"ok": True}
+
+
+@app.post("/api/auto/stop")
+def auto_stop() -> dict:
+    if _auto["sched"] is None:
+        return {"ok": True}
+    _auto["sched"].shutdown(wait=False)
+    _auto["sched"] = None
+    _log("자동 모드 OFF")
+    return {"ok": True}
+
+
+@app.get("/api/auto/status")
+def auto_status() -> dict:
+    return {"auto": _auto["sched"] is not None}
+
+
 @app.post("/api/discover")
 def run_discover() -> dict:
     """해외 트렌드 스캔 (YouTube API 키 필요)."""
