@@ -91,10 +91,22 @@ def _render(p: dict) -> tuple[str, str]:
 
 
 def _send_email(to_addr: str, body: str) -> None:
+    """Resend API 우선, 없으면 SMTP(Gmail 앱 비밀번호 등)."""
+    import httpx
     s = settings()
     subject, _, content = body.partition("\n\n")
+    subject = subject.replace("제목: ", "")
+    if s.resend_api_key:
+        r = httpx.post(
+            "https://api.resend.com/emails",
+            headers={"Authorization": f"Bearer {s.resend_api_key}"},
+            json={"from": s.outreach_from or s.smtp_user,
+                  "to": [to_addr], "subject": subject, "text": content},
+            timeout=30)
+        r.raise_for_status()
+        return
     msg = MIMEText(content, "plain", "utf-8")
-    msg["Subject"] = subject.replace("제목: ", "")
+    msg["Subject"] = subject
     msg["From"] = s.smtp_user
     msg["To"] = to_addr
     with smtplib.SMTP(s.smtp_host, s.smtp_port, timeout=30) as smtp:
@@ -111,7 +123,8 @@ def run_daily() -> None:
         path.write_text(body, encoding="utf-8")
         status, note = "drafted", f"초안: {path.name}"
         if (channel == "email" and s.outreach_auto_send
-                and s.smtp_host and p.get("supplier_email")):
+                and (s.resend_api_key or s.smtp_host)
+                and p.get("supplier_email")):
             try:
                 _send_email(p["supplier_email"], body)
                 status, note = "sent", f"자동 발송 → {p['supplier_email']}"

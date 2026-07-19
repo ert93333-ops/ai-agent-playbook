@@ -61,6 +61,8 @@ class Settings(BaseSettings):
     smtp_port: int = 587
     smtp_user: str = ""
     smtp_password: str = ""
+    resend_api_key: str = ""         # Resend 사용 시 (SMTP보다 설정 간단)
+    outreach_from: str = ""          # Resend 발신 주소 (도메인 인증 필요)
     outreach_auto_send: bool = False # true면 초안 없이 자동 발송
 
 
