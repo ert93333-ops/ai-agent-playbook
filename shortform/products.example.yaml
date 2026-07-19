@@ -9,6 +9,25 @@ products:
     # licensed인 경우 제공 근거 기록 필수:
     # license: licensed
     # license_note: "2026-07-15 OO전자 담당자 이메일로 홍보 소스 사용 허가"
+
+  # 1688 사입 상품 예시 — footage가 아직 없으면 아웃리치가 소스 요청 초안을
+  # 자동 생성한다 (out/outreach/*.1688.txt → 왕왕 채팅에 붙여넣기).
+  # 소스 받으면 footage 경로 채우고 license: licensed + license_note 기록.
+  - id: mini-humidifier-01
+    name: "미니 무선 가습기"
+    footage: ./ingest/products/humidifier.mp4   # 아직 없음 → 아웃리치 대상
+    supplier_channel: "1688"
+    supplier_url: https://detail.1688.com/offer/...
+    license: licensed
+    license_note: ""        # 공급사 허가 회신 받으면 기록
+    coupang_url: https://www.coupang.com/vp/products/...
+    partners_link: https://link.coupang.com/a/...
+    price: "15,900원"
+    selling_points:
+      - "무선 — 차량·사무실 어디서나"
+      - "8시간 연속 분무"
+    target_audience: "건조한 사무실에서 일하는 직장인"
+    avoid: "치료·건강 효능 주장 금지"
     coupang_url: https://www.coupang.com/vp/products/...
     partners_link: https://link.coupang.com/a/...
     price: "29,900원"

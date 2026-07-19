@@ -31,6 +31,10 @@ def main() -> None:
     ing.add_argument("--license", default="own",
                      choices=["own", "licensed", "cc_by", "public"])
     sub.add_parser("status")
+    sub.add_parser("outreach")            # 공급사 소스 요청 초안 생성/발송
+    orp = sub.add_parser("outreach-replied")
+    orp.add_argument("product_id")
+    orp.add_argument("--note", default="")
 
     args = ap.parse_args()
 
@@ -61,6 +65,13 @@ def main() -> None:
             source_url=f"file://{path}", source_title=args.title, priority=100,
             payload={"local_path": str(path), "angle_hint": "", "video_id": ""})
         print(f"job {job_id} created (DISCOVERED). 다음: python -m app run-once")
+    elif args.cmd == "outreach":
+        from . import outreach
+        outreach.run_daily()
+    elif args.cmd == "outreach-replied":
+        from . import outreach
+        outreach.mark_replied(args.product_id, args.note)
+        print(f"{args.product_id}: replied 처리 — products.yaml에 license_note를 기록하세요")
     elif args.cmd == "status":
         from . import db
         with db.conn() as c:

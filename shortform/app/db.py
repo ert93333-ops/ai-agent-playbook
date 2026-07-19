@@ -66,6 +66,11 @@ CREATE TABLE IF NOT EXISTS llm_usage (           -- 예산 가드
     ts REAL, model TEXT, input_tokens INTEGER, output_tokens INTEGER,
     cost_usd REAL
 );
+CREATE TABLE IF NOT EXISTS outreach (            -- 공급사 메일 상태
+    product_id TEXT PRIMARY KEY, supplier_email TEXT,
+    status TEXT DEFAULT 'drafted',               -- drafted | sent | replied | closed
+    sent_at REAL, followup_at REAL, note TEXT
+);
 CREATE TABLE IF NOT EXISTS template_stats (      -- M9 카테고리 조건부 밴딧 통계
     dimension TEXT, preset TEXT, category TEXT DEFAULT '*',
     trials INTEGER DEFAULT 0, reward_sum REAL DEFAULT 0,

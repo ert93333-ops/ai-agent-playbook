@@ -41,6 +41,9 @@ def add_jobs(sched) -> None:
     sched.add_job(product_research.weekly_report,
                   CronTrigger(day_of_week="mon", hour=9, minute=0),
                   id="product-research")
+    from . import outreach
+    sched.add_job(outreach.run_daily, CronTrigger(hour=10, minute=30),
+                  id="outreach")
     for track in enabled_tracks():
         for slot in track.publish_slots:
             hh, mm = slot.split(":")

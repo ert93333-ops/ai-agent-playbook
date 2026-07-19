@@ -54,6 +54,15 @@ class Settings(BaseSettings):
     optimize_goal: str = "subs"
     monthly_llm_budget_usd: float = 50.0
 
+    # 공급사 메일 아웃리치 (SMTP 미설정이면 초안 파일만 생성)
+    seller_name: str = ""            # 예: 홍길동 (OO스토어 대표)
+    seller_store: str = ""           # 예: 쿠팡 OO스토어
+    smtp_host: str = ""              # 예: smtp.gmail.com (앱 비밀번호 사용)
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    outreach_auto_send: bool = False # true면 초안 없이 자동 발송
+
 
 class Track(BaseModel):
     id: str
