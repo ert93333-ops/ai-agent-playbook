@@ -11,6 +11,20 @@ YouTube Shorts·Instagram Reels 자동 업로드까지 이어지는 24시간 파
 클립은 해설을 뒷받침하는 짧은 인용(종(從))이라는 원칙이 모든 모듈 설계에
 우선한다.
 
+**멀티트랙 구조**: 파이프라인은 "트랙"(대상 시장) 단위로 파라미터화한다.
+트랙 = `tracks.yaml`의 한 항목으로, 대상 언어, 번역 방향(소스 언어 →
+대상 언어), 페르소나 파일, TTS 보이스, 발행 채널·슬롯(시간대), 소재
+필터, 트렌드 스캔 region 목록을 정의한다. M1~M9 전 모듈은 트랙별로
+독립 실행되며 job은 `track_id`를 가진다.
+- **1차 런칭은 `kr` 트랙 단독** (해외 바이럴 → 한국어 해설). 운영자가
+  해설 품질을 직접 판단할 수 있는 언어에서 M9 피드백 루프로 최적 폼을
+  검증하는 것이 우선이다.
+- `en` 트랙(아시아/한국 바이럴 → 영어 해설)은 kr 트랙의 검증된 템플릿을
+  물려받아 2차로 추가한다. 코드는 처음부터 트랙 파라미터를 받도록
+  구현하되, kr 외 트랙 활성화는 설정으로만 막아 둔다.
+- 중국 본토 플랫폼(더우인 등)은 API·계정·수익화 제약으로 지원하지
+  않는다. 중화권은 필요 시 유튜브 위의 번체 중국어 트랙으로 추가한다.
+
 ---
 
 ## 0. 하드 제약 — 반드시 먼저 읽고 그대로 구현할 것
@@ -113,8 +127,8 @@ shortform/
   SPEC.md               ← 이 문서
   ASSET_PROMPTS.md      ← ChatGPT 이미지 에셋 생성 프롬프트 모음
   app/
-    __main__.py         # CLI: run-all | stage <name> | serve-dashboard
-    config.py           # pydantic-settings, .env 로드
+    __main__.py         # CLI: run-all [--track kr] | stage <name> | serve-dashboard
+    config.py           # pydantic-settings, .env + tracks.yaml 로드
     db.py               # SQLite 스키마 + 상태 전이 함수
     stages/
       m1_discover.py
@@ -133,6 +147,9 @@ shortform/
       server.py         # FastAPI 승인 큐 + 상태 보드
       index.html
     scheduler.py
+  tracks.yaml           # 트랙 정의 (kr 활성, en/zh-hant 비활성 스텁)
+  persona.kr.yaml       # kr 트랙 페르소나 (말투, 금지 표현, 유머 톤)
+  templates.yaml        # M9 템플릿 차원 프리셋
   assets/               # ChatGPT 생성 PNG (자막 박스, 스티커, 로고 등)
   work/                 # 다운로드·중간 산출물 (gitignore)
   out/                  # 최종 mp4 + 메타데이터 JSON (gitignore)
@@ -314,6 +331,9 @@ shortform/
 3. **Phase 3 — 자동화**: M1·M2·M7 연결, 승인 큐 모드로 24시간 상주 운전.
 4. **Phase 4 — 피드백 루프**: M8 성과 수집 + M9 변형 실험·밴딧 최적화 →
    레이아웃/편집점/제목/톤앤매너 수렴, 벤치마크·댓글 마이닝 고도화.
+5. **Phase 5 — 트랙 확장**: kr 트랙에서 검증된 템플릿·톤앤매너를 기반으로
+   `en` 트랙(아시아 바이럴 → 영어 해설) 활성화. 트랙별 페르소나·발행
+   시간대·소재 필터만 신규 작성, 코드 변경 없이 설정으로 런칭이 목표.
 
 ## 6. 검수 기준
 
